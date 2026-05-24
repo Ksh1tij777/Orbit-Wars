@@ -39,6 +39,24 @@ A list of moves: `[[from_planet_id, angle_in_radians, num_ships], ...]`
 
 ## Session Log
 
+### Session 2 — v2 Agent Rewrite (2026-05-24)
+
+#### Changes Made
+Complete rewrite of `main.py`. Key additions:
+
+| Change | Detail |
+|--------|--------|
+| **Two-phase logic** | Phase 1 = Defense, Phase 2 = Expansion/Attack |
+| **`fleet_aims_at()`** | Detects if any fleet's trajectory passes within 6 units of a planet using perpendicular distance math (replaces broken `enemy_ships_incoming`) |
+| **`get_garrison(ships, turn)`** | 15% early game, 30% late game |
+| **`committed_from / committed_to`** | Tracks ships dispatched per source and per target in the same turn — prevents double-spending |
+| **Multi-target per planet** | Removed `break` — each planet keeps sending until ships run out |
+| **`score_neutral()` / `score_enemy()`** | Proper scoring with early-game 1.5× expansion bonus |
+| **`MIN_FLEET = 10`** | No more useless 5-ship fleets |
+| **Global `_turn` counter** | Used to switch garrison ratio at turn 40 |
+
+---
+
 ### Session 1 — Initial Setup
 **Date:** 2026-05-24
 
@@ -79,12 +97,15 @@ Observed via `replay.html`:
 
 ## Planned Improvements
 
-### v2 — Core Fixes (Next)
-- [ ] `MIN_FLEET = 10` — never send fewer than 10 ships
-- [ ] Remove `break` — loop and send to multiple targets per turn using remaining ships
-- [ ] Dynamic garrison: **15% turns 0–40**, **30% turns 40+**
-- [ ] Wire in defense: detect incoming enemy fleets, reinforce threatened planets
-- [ ] Capture buffer: `ships_needed = tships + 5` minimum for neutrals
+### v2 — Core Fixes ✅ SHIPPED (2026-05-24)
+- [x] `MIN_FLEET = 10` — never send fewer than 10 ships
+- [x] Remove `break` — loop and send to multiple targets per turn using remaining ships
+- [x] Dynamic garrison: **15% turns 0–40**, **30% turns 40+** via `get_garrison()`
+- [x] Wire in defense: `fleet_aims_at()` detects trajectories, reinforcements auto-dispatched
+- [x] Capture buffer: `ships_needed = tships + CAPTURE_BUFFER(5)` for neutrals
+- [x] `committed_from` / `committed_to` dicts prevent over-committing same ships twice
+- [x] Improved target scoring functions: `score_neutral()` and `score_enemy()` with early-game bonus
+- [x] `fleet_aims_at()` uses perpendicular distance (more accurate than angle threshold)
 
 ### v3 — Strategy Upgrades (Future)
 - [ ] Multi-planet coordination: gang up multiple planets on one target
